@@ -5,18 +5,15 @@ import org.testng.annotations.Test;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.*;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 public class Assignment8 {
     private List<Integer> numbers = null;
+    private HashMap<Integer,Integer> sm = new HashMap<>();
     private AtomicInteger i = new AtomicInteger(0);
 
     @Test
@@ -24,9 +21,7 @@ public class Assignment8 {
     public void getData () {
 
         Assignment8 assignment = new Assignment8();
-
         List<CompletableFuture<List<Integer>>> tasks = new ArrayList<>();
-
         ExecutorService pool = Executors.newCachedThreadPool();
 
         for (int i=0; i<1000; i++) {
@@ -41,16 +36,26 @@ public class Assignment8 {
         }
 
         while (tasks.stream().filter(CompletableFuture::isDone).count() < 1000) {
-            System.out.println("Number of completed threads: "
-                    + tasks.stream().filter(CompletableFuture::isDone).count());
-
+            //System.out.println("Number of completed threads: "
+            //        + tasks.stream().filter(CompletableFuture::isDone).count());
+            //tasks.stream().filter(CompletableFuture::isDone).count();
         }
 
-        System.out.println(tasks.size());
+        //System.out.println(tasks.size());
 
         tasks.stream().filter(CompletableFuture::isDone).forEach((entry) -> {
             try {
-                System.out.println(entry.get());
+
+                //System.out.println(entry.get());
+
+
+                entry.get().forEach(e -> {
+                    if(sm.get(e)==null){
+                        sm.put(e,1);
+                    } else {
+                        sm.put(e,sm.get(e)+1);
+                    }
+                });
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             } catch (ExecutionException e) {
@@ -90,26 +95,31 @@ public class Assignment8 {
             start = i.get();
             end = i.addAndGet(1000);
 
-            System.out.println("Starting to fetch records " + start + " to " + (end));
+            //System.out.println("Starting to fetch records " + start + " to " + (end));
         }
         // force thread to pause for half a second to simulate actual Http / API traffic
         // delay
         try {
             Thread.sleep(500);
         } catch (InterruptedException e) {
+            e.printStackTrace();
         }
 
         List<Integer> newList = new ArrayList<>();
+
+        //Here we are getting the numbers
         IntStream.range(start, end)
                 .forEach(n -> {
                     newList.add(numbers.get(n));
+                    //Here it fetches all data task by task
                 });
-        System.out.println("Done Fetching records " + start + " to " + (end));
+        //System.out.println("Done Fetching records " + start + " to " + (end));
         return newList;
     }
 
     private void outputI() {
-        System.out.println(i);
+
+        System.out.println(sm);
     }
 
 }
